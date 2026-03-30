@@ -1,0 +1,104 @@
+openapi: "3.0.3"
+info:
+  title: Inventory Service API
+  version: "1.0.0"
+
+paths:
+  /api/inventory/reserve:
+    post:
+      operationId: reserveStock
+      summary: Reserve stock for an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReserveRequest"
+            example:
+              productId: "prod-1"
+              quantity: 2
+              orderId: "ord-123"
+      responses:
+        "200":
+          description: Stock reserved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationDTO"
+              example:
+                reservationId: "res-abc"
+                productId: "prod-1"
+                quantity: 2
+                expiresAt: "2026-01-01T12:00:00Z"
+        "409":
+          description: Insufficient stock
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Insufficient stock"
+                code: "INSUFFICIENT_STOCK"
+                available: 1
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Service unavailable
+
+  /api/inventory/reserve/{reservationId}:
+    delete:
+      operationId: releaseReservation
+      summary: Release a reservation (on cancel)
+      parameters:
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Released
+        "404":
+          description: Reservation not found
+
+components:
+  schemas:
+    ReserveRequest:
+      type: object
+      required: [productId, quantity, orderId]
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        orderId:
+          type: string
+
+    ReservationDTO:
+      type: object
+      properties:
+        reservationId:
+          type: string
+        productId:
+          type: string
+        quantity:
+          type: integer
+        expiresAt:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        available:
+          type: integer

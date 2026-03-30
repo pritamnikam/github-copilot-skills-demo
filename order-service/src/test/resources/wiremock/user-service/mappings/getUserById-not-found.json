@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathEqualTo": "/api/users/unknown-user"
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "error": "User not found",
+      "code": "USER_NOT_FOUND"
+    }
+  }
+}

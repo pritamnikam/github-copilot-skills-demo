@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathEqualTo": "/api/inventory/reserve",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.productId"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "reservationId": "res-abc-123",
+      "productId": "prod-1",
+      "quantity": 2,
+      "expiresAt": "2026-12-01T12:00:00Z"
+    }
+  }
+}

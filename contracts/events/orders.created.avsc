@@ -1,0 +1,14 @@
+{
+  "namespace": "com.example.events",
+  "type": "record",
+  "name": "OrderCreatedEvent",
+  "fields": [
+    { "name": "orderId",    "type": "string" },
+    { "name": "userId",     "type": "string" },
+    { "name": "productId",  "type": "string" },
+    { "name": "quantity",   "type": "int" },
+    { "name": "totalPrice", "type": "double" },
+    { "name": "status",     "type": "string" },
+    { "name": "createdAt",  "type": "string" }
+  ]
+}

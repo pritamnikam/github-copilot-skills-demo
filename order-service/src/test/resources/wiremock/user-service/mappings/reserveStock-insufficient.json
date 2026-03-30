@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathEqualTo": "/api/inventory/reserve",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.quantity",
+        "expression": "$.quantity",
+        "contains": "999"
+      }
+    ]
+  },
+  "response": {
+    "status": 409,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "error": "Insufficient stock",
+      "code": "INSUFFICIENT_STOCK",
+      "available": 1
+    }
+  }
+}

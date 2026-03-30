@@ -1,0 +1,119 @@
+openapi: "3.0.3"
+info:
+  title: User Service API
+  version: "1.0.0"
+
+paths:
+  /api/users/{id}:
+    get:
+      operationId: getUserById
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+              example:
+                id: "user-1"
+                email: "alice@example.com"
+                name: "Alice Smith"
+                status: "ACTIVE"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "User not found"
+                code: "USER_NOT_FOUND"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/users:
+    post:
+      operationId: createUser
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+            example:
+              email: "bob@example.com"
+              name: "Bob Jones"
+              password: "SecureP@ss1"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Email already registered"
+                code: "DUPLICATE_EMAIL"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    UserDTO:
+      type: object
+      required: [id, email, name, status]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+
+    CreateUserRequest:
+      type: object
+      required: [email, name, password]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        password:
+          type: string
+          minLength: 8
+
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string

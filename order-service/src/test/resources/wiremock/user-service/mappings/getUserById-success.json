@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathMatching": "/api/users/([a-zA-Z0-9-]+)"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "user-1",
+      "email": "alice@example.com",
+      "name": "Alice Smith",
+      "status": "ACTIVE"
+    }
+  }
+}
