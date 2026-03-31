@@ -125,3 +125,85 @@ Always output in this order:
 2. Test class
 3. Any test data factories needed
 4. Summary: N tests generated, covering N methods, N scenarios
+
+
+# Functional / API Testing Standards
+
+## What API tests verify
+API tests call real HTTP endpoints against a running service instance.
+They validate: status codes, response body schema, headers,
+error messages, auth enforcement, and content negotiation.
+They do NOT test business logic — that belongs in unit tests.
+They do NOT test cross-service workflows — that belongs in E2E tests.
+
+## Scope
+- One service at a time
+- Dependencies stubbed via WireMock (same as integration tests)
+- Real DB via TestContainers
+- Service started on a random port
+- Tests call HTTP endpoints directly
+
+## Java stack
+Framework:   RestAssured 5.x
+Base class:  BaseApiTest (extends BaseIntegrationTest)
+JSON schema: rest-assured json-schema-validator
+Auth helper: JwtTestHelper (generates test JWT tokens)
+File suffix: *ApiTest.java
+
+## Python stack
+HTTP client: httpx (sync TestClient wrapping FastAPI app)
+Base:        ApiTestBase class in tests/api/conftest.py
+JSON schema: jsonschema library
+Auth helper: create_test_token() fixture
+File naming: test_*_api.py
+
+## Non-negotiable rules
+- ALWAYS test with a valid auth token (unless testing 401 explicitly)
+- ALWAYS assert the response status code first
+- ALWAYS assert the Content-Type header
+- ALWAYS validate response body against OpenAPI schema
+- ALWAYS test the 401 case for every protected endpoint
+- NEVER assert internal implementation details (DB IDs from mock, etc.)
+- NEVER use hardcoded ports — always use random port from test context
+
+## What to test per endpoint (mandatory)
+Every endpoint must have tests for:
+  [ ] 2xx happy path — valid request, correct response body and schema
+  [ ] 400 — invalid request body (missing fields, wrong types)
+  [ ] 401 — missing token
+  [ ] 401 — expired token
+  [ ] 401 — malformed token
+  [ ] 404 — resource not found (where applicable)
+  [ ] 405 — wrong HTTP method
+  [ ] 415 — wrong Content-Type (for POST/PUT)
+  [ ] Each documented error code from OpenAPI spec
+
+## Response schema validation
+Java:
+  .body(matchesJsonSchemaInClasspath(
+      "schemas/order-response.json"))
+
+Python:
+  from jsonschema import validate
+  validate(response.json(), load_schema("order-response.json"))
+
+Schemas live at:
+  Java:   src/test/resources/schemas/
+  Python: tests/schemas/
+Generate schemas from OpenAPI components using the
+contract-validator skill.
+
+## Auth token generation for tests
+Java:
+  String token = JwtTestHelper.validToken("user-1", "ROLE_USER");
+  String expired = JwtTestHelper.expiredToken("user-1");
+  String malformed = "not.a.real.jwt";
+
+Python:
+  token = create_test_token(user_id="user-1", role="ROLE_USER")
+  expired_token = create_expired_token(user_id="user-1")
+
+## Test data lifecycle
+- Seed via @Sql (Java) or sql fixture (Python) before each test
+- Rollback via @Transactional or explicit DELETE after each test
+- Never depend on test execution order

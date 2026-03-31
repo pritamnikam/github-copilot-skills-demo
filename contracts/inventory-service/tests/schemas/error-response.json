@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorResponse",
+  "type": "object",
+  "required": ["error", "code"],
+  "properties": {
+    "error":     { "type": "string", "minLength": 1 },
+    "code":      { "type": "string", "minLength": 1 },
+    "available": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

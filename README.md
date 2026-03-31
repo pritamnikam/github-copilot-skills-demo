@@ -85,3 +85,76 @@ mvn test -Dtest="*IT"
 # In Copilot Chat:
 @integration-agent fix stale stubs for order-service
 ```
+
+
+### Functiona tests
+```bash
+# The functional/API test layer sits here:
+
+External caller
+      │
+      ▼
+[API Test] ──HTTP──► [Your Service] ──WireMock──► [Dependencies]
+                            │
+                      [Real DB via TestContainers]
+```
+
+#### Structure
+```bash
+org/
+├── contracts/
+│   ├── user-service/openapi.yaml         # already exists
+│   ├── inventory-service/openapi.yaml    # already exists
+│   └── order-service/openapi.yaml        # NEW — we add this now
+│
+├── .github/
+│   ├── copilot-instructions.md           # extend with API test rules
+│   ├── skills/
+│   │   ├── api-test-generator.md         # NEW
+│   │   └── contract-validator.md         # NEW
+│   ├── agents/
+│   │   └── api-coverage-agent.md         # NEW
+│   └── prompts/
+│       ├── gen-api-test.prompt.md        # NEW
+│       └── validate-contract.prompt.md  # NEW
+│
+├── order-service/                         # Java — RestAssured
+│   ├── .github/copilot-instructions.md   # extend
+│   └── src/test/java/com/example/order/
+│       ├── support/
+│       │   └── BaseApiTest.java          # NEW — RestAssured base
+│       └── api/
+│           ├── PlaceOrderApiTest.java    # NEW
+│           └── CancelOrderApiTest.java   # NEW
+│
+└── inventory-service/                    # Python — httpx
+    ├── .github/copilot-instructions.md  # extend
+    └── tests/
+        ├── api/
+        │   ├── conftest.py              # NEW — httpx client setup
+        │   └── test_reserve_stock_api.py # NEW
+        └── conftest.py                  # already exists
+```
+
+```bash
+# Java — run all API tests
+mvn test -Dtest="*ApiTest" -pl order-service
+
+# Java — run one endpoint's tests
+mvn test -Dtest="PlaceOrderApiTest" -pl order-service
+
+# Python — run all API tests
+pytest tests/api/ -v
+
+# Python — run one endpoint's tests
+pytest tests/api/test_reserve_stock_api.py -v
+
+# Generate API tests for a new endpoint (Copilot)
+/gen-api-test
+
+# Validate contract conformance (Copilot)
+/validate-contract
+
+# Autonomous sweep — find and fill all missing API test scenarios
+@api-agent scan order-service
+```

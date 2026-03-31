@@ -95,3 +95,60 @@ Always import static:
   OrderValidator:  95% lines
   PricingEngine:   90% lines
   OrderController: 80% lines (unit — service mocked)
+
+
+
+# Order Service — API Test Standards
+
+## Base class
+Always extend: com.example.order.support.BaseApiTest
+Never configure RestAssured manually in a test class.
+
+## Auth usage
+authSpec   → all tests that expect 2xx or 4xx business errors
+noAuthSpec → 401 tests only (missing token)
+withExpiredToken() → 401 expired tests
+withMalformedToken() → 401 malformed tests
+
+## WireMock in API tests
+API tests inherit the same WireMock servers as integration tests.
+Use @BeforeEach to set default happy-path stubs.
+Override per-test only for error scenarios.
+Always reset in @BeforeEach (inherited from BaseIntegrationTest).
+
+## Mandatory API tests per endpoint
+
+### POST /api/orders (placeOrder)
+  [ ] 201 — body matches schema
+  [ ] 201 — Location header present
+  [ ] 400 — missing userId
+  [ ] 400 — missing productId
+  [ ] 400 — quantity=0
+  [ ] 400 — quantity negative
+  [ ] 400 — price=0
+  [ ] 401 — no token
+  [ ] 401 — expired token
+  [ ] 401 — malformed token
+  [ ] 404 — user not found (WireMock returns 404)
+  [ ] 409 — insufficient stock (WireMock returns 409)
+  [ ] 415 — wrong content type
+  [ ] 503 — upstream down
+
+### DELETE /api/orders/{orderId} (cancelOrder)
+  [ ] 200 — PENDING order cancelled, schema valid
+  [ ] 401 — no token
+  [ ] 404 — order not found
+  [ ] 409 — order already shipped
+
+### GET /api/orders/{orderId} (getOrder)
+  [ ] 200 — schema valid
+  [ ] 401 — no token
+  [ ] 404 — not found
+
+## JSON Schema location
+src/test/resources/schemas/
+  order-response.json    ← generated from OpenAPI OrderResponse
+  error-response.json    ← generated from OpenAPI ErrorResponse
+
+## Run API tests
+mvn test -Dtest="*ApiTest"
